@@ -1,0 +1,9 @@
+{
+  "name": "pal-invisible",
+  "private": true,
+  "description": "Sorteo de amigo invisible sin servidores, con enlaces secretos.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

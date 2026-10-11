@@ -1,0 +1,18 @@
+# Secretos y restos de la versión antigua (Python + Google Sheets): NUNCA subir
+credentials.json
+*service-account*.json
+.env
+.env.*
+legacy/
+
+# Editores / SO
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Archivos de sorteo exportados (contienen los enlaces)
+pal-invisible-*.json
+
+# Configuración local de Claude Code
+.claude/

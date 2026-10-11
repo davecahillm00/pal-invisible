@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="Sorteo del pal invisible. Sin servidores y cada participante recibe un enlace.">
+  <title>Pal Invisible</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%81%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/estilos.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <!-- Vista del organizador -->
+  <main id="organizador" hidden>
+    <header class="cabecera">
+      <h1>🎁 Pal Invisible</h1>
+      <p class="subtitulo">Sorteo del pal invisible. Sin servidores y cada participante recibe un enlace.</p>
+    </header>
+    <p id="aviso" class="aviso" role="status"></p>
+
+    <section class="tarjeta">
+      <h2>1. Participantes</h2>
+      <ul id="lista-participantes" class="lista"></ul>
+      <button type="button" id="btn-anadir-participante">+ Añadir participante</button>
+    </section>
+
+    <section class="tarjeta">
+      <h2>2. Exclusiones</h2>
+      <p class="ayuda">Quién no puede regalar a quién</p>
+      <div class="fila-exclusion">
+        <select id="excl-de" aria-label="Quién regala"></select>
+        <span>no regala a</span>
+        <select id="excl-a" aria-label="A quién no puede regalar"></select>
+        <label class="casilla"><input type="checkbox" id="excl-ambos" checked> en los dos sentidos</label>
+        <button type="button" id="btn-anadir-exclusion">Añadir</button>
+      </div>
+      <ul id="lista-exclusiones" class="lista"></ul>
+    </section>
+
+    <section class="tarjeta">
+      <h2>3. Mensaje</h2>
+      <div class="campos-mensaje">
+        <label>Presupuesto
+          <input type="text" id="presupuesto" maxlength="40" placeholder="p. ej. 30€">
+        </label>
+        <label><span>Fecha de entrega <span class="opcional">(opcional)</span></span>
+          <input type="date" id="fecha">
+        </label>
+      </div>
+      <p class="ayuda">Lo que verá cada uno al abrir su enlace. Puedes usar <code>{pal}</code>, <code>{destinatario}</code>, <code>{año}</code>, <code>{presupuesto}</code> y <code>{fecha}</code>. Lo que va entre [corchetes] solo sale si tiene datos.</p>
+      <textarea id="mensaje" rows="10" maxlength="3000" aria-label="Mensaje"></textarea>
+      <button type="button" id="btn-restaurar-mensaje" class="enlace">Restaurar mensaje original</button>
+    </section>
+
+    <section class="tarjeta">
+      <h2>4. Sorteo</h2>
+      <label id="lbl-historial" class="casilla" hidden>
+        <input type="checkbox" id="evitar-historial">
+        No repetir las parejas del sorteo guardado de <span id="anio-historial"></span>
+      </label>
+      <p id="error-sorteo" class="error" role="alert"></p>
+      <button type="button" id="btn-sortear" class="principal">Sortear</button>
+    </section>
+
+    <section class="tarjeta" id="sec-resultados" hidden>
+      <h2>Enlaces del sorteo de <span id="anio-sorteo"></span></h2>
+      <p class="ayuda">Manda a cada uno <strong>su</strong> enlace. No abras los de los demás 🙈</p>
+      <ul id="lista-enlaces" class="lista"></ul>
+      <button type="button" id="btn-guardar-sorteo" class="principal">Guardar sorteo (archivo)</button>
+      <p class="ayuda nota">Guarda el archivo: sirve para reenviar un enlace si alguien lo pierde y para no repetir parejas el año que viene.</p>
+    </section>
+
+    <section class="tarjeta">
+      <h2>Guardar y cargar</h2>
+      <p class="ayuda">Guarda en un archivo los participantes, las exclusiones, el mensaje y el sorteo. Con ese archivo puedes reenviar un enlace a quien lo pierda y, el año que viene, cargarlo para no repetir parejas.</p>
+      <div class="acciones">
+        <button type="button" id="btn-exportar">Guardar en archivo</button>
+        <button type="button" id="btn-importar">Cargar archivo</button>
+        <input type="file" id="input-importar" accept="application/json,.json" hidden>
+      </div>
+    </section>
+
+    <footer class="pie">
+      <p>Todo ocurre en tu navegador: no se envía ningún dato a ningún servidor.</p>
+      <button type="button" id="btn-reiniciar" class="enlace">Empezar de cero</button>
+    </footer>
+  </main>
+
+  <!-- Vista del participante (al abrir su enlace) -->
+  <main id="revelar" hidden>
+    <div class="sobre">
+      <p class="marca">🎁 Pal Invisible <span id="rev-anio"></span></p>
+      <div id="rev-cerrado" hidden>
+        <h1>Mensaje para <span id="rev-pal"></span></h1>
+        <button type="button" id="btn-descubrir" class="principal grande">Descubrir</button>
+        <p class="ayuda">¿No eres <span id="rev-pal-2"></span>? Cierra esto sin mirar.</p>
+      </div>
+      <div id="rev-abierto" class="mensaje" hidden></div>
+      <p id="rev-error" class="error" hidden>Este enlace no es válido o está incompleto. Pide al organizador que te lo reenvíe.</p>
+    </div>
+  </main>
+</body>
+</html>
