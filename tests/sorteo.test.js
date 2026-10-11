@@ -55,6 +55,15 @@ test('caso imposible sin imposibles evidentes', () => {
   assert.equal(sortear(nombres, prohibidos), null);
 });
 
+test('avisa si la búsqueda se agota antes de decidir', () => {
+  // Hay solución (el ciclo A→B→C→D→A), pero con un solo paso no da tiempo a encontrarla:
+  // no se puede decir que sea imposible.
+  const nombres = ['A', 'B', 'C', 'D'];
+  const permitidos = new Set(['A>B', 'B>C', 'C>D', 'D>A']);
+  const prohibidos = nombres.flatMap((de) => nombres.filter((a) => a !== de && !permitidos.has(`${de}>${a}`)).map((a) => [de, a]));
+  assert.throws(() => sortear(nombres, prohibidos, { intentosAlAzar: 0, maxPasos: 1 }), { name: 'BusquedaAgotada' });
+});
+
 test('rechaza nombres repetidos', () => {
   assert.throws(() => sortear(['Ana', 'Ana', 'Luis']), /repetidos/);
 });

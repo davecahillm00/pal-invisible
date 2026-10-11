@@ -1,11 +1,11 @@
-import { sortear, sinOpciones } from './sorteo.js';
+import { sortear, sinOpciones, BusquedaAgotada } from './sorteo.js';
 import { cifrar, descifrar } from './enlace.js';
 import { PLANTILLA_ORIGINAL, formatearFecha, marcadoresObligatorios } from './mensaje.js';
 import { aArchivo, desdeArchivo, estadoVacio, nuevoId } from './archivo.js';
+import { EMAIL_VALIDO, siguientePorCorreo } from './correo.js';
 
 const CLAVE_LOCAL = 'pal-invisible';
 const MIN_PARTICIPANTES = 3;
-const EMAIL_VALIDO = /^[^\s@<>()",;:?&#%]+@[^\s@<>()",;:?&#%]+\.[^\s@<>()",;:?&#%]+$/;
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -236,7 +236,13 @@ async function hacerSorteo() {
   const usarAnterior = evitarAnterior && hayAnterior();
   if (usarAnterior) prohibidos.push(...await paresDelSorteoAnterior());
 
-  const asignacion = sortear(nombres, prohibidos);
+  let asignacion;
+  try {
+    asignacion = sortear(nombres, prohibidos);
+  } catch (e) {
+    if (!(e instanceof BusquedaAgotada)) throw e;
+    return errorSorteo('No he podido comprobar si existe una combinación: hay demasiadas restricciones. Quita alguna exclusión e inténtalo de nuevo.');
+  }
   if (!asignacion) {
     return errorSorteo(usarAnterior
       ? 'No hay ninguna combinación que no repita parejas del sorteo anterior. Desmarca esa opción o quita alguna exclusión.'
@@ -272,6 +278,12 @@ function textoInvitacion(pal, año, enlace) {
   return `Querido ${pal},\n\nAbre este enlace para descubrir a quién te ha tocado regalar en el Pal Invisible de ${año}:\n${enlace}\n`;
 }
 
+function enlaceCorreo(item) {
+  const asunto = encodeURIComponent('Tu amigo invisible');
+  const cuerpo = encodeURIComponent(textoInvitacion(item.pal, estado.sorteo.año, enlaceDe(item.token)));
+  return `mailto:${item.email}?subject=${asunto}&body=${cuerpo}`;
+}
+
 function filaEnlace(item) {
   const { año } = estado.sorteo;
   const enlace = enlaceDe(item.token);
@@ -282,6 +294,7 @@ function filaEnlace(item) {
     li.classList.add('enviado');
     casilla.checked = true;
     guardarLocal();
+    actualizarMandarSiguiente();
   };
 
   const quien = el('div', 'quien');
@@ -312,9 +325,7 @@ function filaEnlace(item) {
 
   if (item.email && EMAIL_VALIDO.test(item.email)) {
     const correo = el('a', 'boton', 'Correo');
-    const asunto = encodeURIComponent('Tu amigo invisible');
-    const cuerpo = encodeURIComponent(textoInvitacion(item.pal, año, enlace));
-    correo.href = `mailto:${item.email}?subject=${asunto}&body=${cuerpo}`;
+    correo.href = enlaceCorreo(item);
     correo.addEventListener('click', marcarEnviado);
     acciones.append(correo);
   }
@@ -327,6 +338,7 @@ function filaEnlace(item) {
     item.enviado = casilla.checked;
     li.classList.toggle('enviado', item.enviado);
     guardarLocal();
+    actualizarMandarSiguiente();
   });
   etiqueta.append(casilla, ' Enviado');
   acciones.append(etiqueta);
@@ -341,6 +353,24 @@ function renderResultados() {
   if (!estado.sorteo) return;
   $('#anio-sorteo').textContent = estado.sorteo.año;
   $('#lista-enlaces').replaceChildren(...estado.sorteo.enlaces.map(filaEnlace));
+  actualizarMandarSiguiente();
+}
+
+function actualizarMandarSiguiente() {
+  const b = $('#btn-mandar-siguiente');
+  const siguiente = siguientePorCorreo(estado.sorteo.enlaces);
+  b.hidden = !estado.sorteo.enlaces.some((e) => EMAIL_VALIDO.test(e.email));
+  b.disabled = !siguiente;
+  b.textContent = siguiente ? `Mandar siguiente (${siguiente.pal})` : 'Ya están todos mandados';
+}
+
+function mandarSiguiente() {
+  const siguiente = siguientePorCorreo(estado.sorteo.enlaces);
+  if (!siguiente) return;
+  location.href = enlaceCorreo(siguiente);
+  siguiente.enviado = true;
+  guardarLocal();
+  renderResultados();
 }
 
 // ---------- archivo ----------
@@ -414,6 +444,7 @@ export function iniciarOrganizador() {
   });
   $('#evitar-historial').addEventListener('change', (ev) => { evitarAnterior = ev.target.checked; });
   $('#btn-sortear').addEventListener('click', hacerSorteo);
+  $('#btn-mandar-siguiente').addEventListener('click', mandarSiguiente);
   $('#btn-guardar-sorteo').addEventListener('click', exportar);
   $('#btn-exportar').addEventListener('click', exportar);
   $('#btn-importar').addEventListener('click', () => $('#input-importar').click());

@@ -3,6 +3,11 @@
 
 const clave = (de, a) => `${de}\u0000${a}`;
 
+/** La búsqueda llegó al límite de pasos sin poder decidir si existe una combinación. */
+export class BusquedaAgotada extends Error {
+  name = 'BusquedaAgotada';
+}
+
 function azarSeguro() {
   return crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32;
 }
@@ -38,6 +43,7 @@ export function sinOpciones(nombres, prohibidos = []) {
  * @param {string[]} nombres Participantes (sin repetir).
  * @param {Array<[string, string]>} prohibidos Pares [de, a] que no pueden darse.
  * @returns {Map<string, string> | null} quién regala a quién, o null si no hay combinación posible.
+ * @throws {BusquedaAgotada} si la búsqueda llega al límite de pasos sin poder decidir.
  */
 export function sortear(nombres, prohibidos = [], { aleatorio = azarSeguro, intentosAlAzar = 1000, maxPasos = 200_000 } = {}) {
   if (new Set(nombres).size !== nombres.length) throw new Error('Hay nombres repetidos');
@@ -57,9 +63,13 @@ export function sortear(nombres, prohibidos = [], { aleatorio = azarSeguro, inte
   const asignacion = new Map();
   const usados = new Set();
   let pasos = 0;
+  let agotada = false;
   const buscar = (i) => {
     if (i === orden.length) return true;
-    if (++pasos > maxPasos) return false;
+    if (agotada || ++pasos > maxPasos) {
+      agotada = true;
+      return false;
+    }
     const de = orden[i];
     for (const a of barajar(posibles.get(de), aleatorio)) {
       if (usados.has(a)) continue;
@@ -71,5 +81,8 @@ export function sortear(nombres, prohibidos = [], { aleatorio = azarSeguro, inte
     }
     return false;
   };
-  return buscar(0) ? asignacion : null;
+  if (buscar(0)) return asignacion;
+  // Si se agotaron los pasos, no se sabe si hay solución: no se puede decir que sea imposible.
+  if (agotada) throw new BusquedaAgotada();
+  return null;
 }

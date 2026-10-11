@@ -16,3 +16,6 @@ pal-invisible-*.json
 
 # Configuración local de Claude Code
 .claude/
+
+# Instrucciones locales de Claude Code (no se suben)
+CLAUDE.md

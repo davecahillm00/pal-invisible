@@ -58,10 +58,11 @@ js/sorteo.js        Algoritmo del sorteo con restricciones
 js/enlace.js        Cifrado / descifrado de los enlaces
 js/archivo.js       Formato de exportar / importar
 js/mensaje.js       Plantilla del mensaje
+js/correo.js        Qué enlace toca con «Mandar siguiente»
 tests/              Tests con el runner nativo de Node
 ```
 
-Tests (Node 20 o superior):
+Tests (Node 22 o superior):
 
 ```bash
 npm test
@@ -69,7 +70,7 @@ npm test
 
 ### El sorteo
 
-Primero prueba permutaciones al azar, que hacen que todas las combinaciones válidas sean igual de probables. Si las restricciones son tan estrictas que no sale ninguna, pasa a una búsqueda con vuelta atrás que **siempre** encuentra una solución si existe. Si no existe, explica el motivo cuando es evidente, por ejemplo: «Ana no puede regalar a nadie con estas exclusiones».
+Primero prueba permutaciones al azar, que hacen que todas las combinaciones válidas sean igual de probables. Si las restricciones son tan estrictas que no sale ninguna, pasa a una búsqueda con vuelta atrás que encuentra una solución si existe. Esa búsqueda tiene un límite de pasos: si lo alcanza sin decidir, avisa de que no ha podido comprobarlo y pide quitar alguna exclusión. Si no existe solución, explica el motivo cuando es evidente, por ejemplo: «Ana no puede regalar a nadie con estas exclusiones».
 
 ## Historia
 
